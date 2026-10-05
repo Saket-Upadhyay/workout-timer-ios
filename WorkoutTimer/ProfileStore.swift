@@ -36,11 +36,24 @@ final class ProfileStore {
         try? JSONEncoder().encode(profiles)
     }
 
-    func importProfiles(from data: Data) {
-        guard let imported = try? JSONDecoder().decode([WorkoutProfile].self, from: data) else { return }
+    /// Accepts either a JSON array of profiles or a single profile object.
+    /// Returns the number of profiles actually added (duplicates by id are skipped).
+    @discardableResult
+    func importProfiles(from data: Data) -> Int {
+        let decoder = JSONDecoder()
+        let imported: [WorkoutProfile]
+        if let array = try? decoder.decode([WorkoutProfile].self, from: data) {
+            imported = array
+        } else if let single = try? decoder.decode(WorkoutProfile.self, from: data) {
+            imported = [single]
+        } else {
+            return 0
+        }
         let existingIDs = Set(profiles.map(\.id))
-        profiles.append(contentsOf: imported.filter { !existingIDs.contains($0.id) })
+        let newProfiles = imported.filter { !existingIDs.contains($0.id) }
+        profiles.append(contentsOf: newProfiles)
         persist()
+        return newProfiles.count
     }
 
     private func load() {
