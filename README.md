@@ -1,10 +1,10 @@
-<p align="center">
-  <img src="WorkoutTimer/Assets.xcassets/AppIcon.appiconset/icon-light.png" width="128" alt="WorkoutTimer icon">
-</p>
+[![iOS CI](https://github.com/Saket-Upadhyay/workout-timer-ios/actions/workflows/ios.yml/badge.svg?branch=main)](https://github.com/Saket-Upadhyay/workout-timer-ios/actions/workflows/ios.yml)
 
-<h1 align="center">WorkoutTimer</h1>
+![WorkoutTimer icon](docs/icon.png)
 
-<p align="center">A simple iOS app for timing sets and rest periods during a workout.</p>
+# WorkoutTimer
+
+A simple iOS app for timing sets and rest periods during a workout.
 
 ## Features
 
@@ -12,7 +12,7 @@
 - **Rounds** – repeat the full exercise list up to 10 times.
 - **Active timer** – tap *Done Set* to start the rest countdown; *Skip Rest* to move on early. Shows the next exercise during rests and alerts when rest ends.
 - **Profiles** – save workouts and reload them later.
-- **Import / export** – share profiles as JSON backup files.
+- **Import/export** – share profiles as JSON backup files.
 
 ## Requirements
 
