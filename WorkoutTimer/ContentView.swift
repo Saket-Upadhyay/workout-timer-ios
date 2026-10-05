@@ -8,16 +8,26 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var exercises: [Exercise] = []
+    @State private var rounds = 1
+    @State private var activeManager: WorkoutManager?
+    @State private var profileStore = ProfileStore()
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        NavigationStack {
+            ExerciseSetupView(exercises: $exercises, rounds: $rounds, profileStore: profileStore) {
+                activeManager = WorkoutManager(exercises: exercises, rounds: rounds)
+            }
         }
-        .padding()
+        .fullScreenCover(item: $activeManager) { manager in
+            ActiveWorkoutView(manager: manager) {
+                activeManager = nil
+            }
+        }
     }
 }
+
+extension WorkoutManager: Identifiable {}
 
 #Preview {
     ContentView()
