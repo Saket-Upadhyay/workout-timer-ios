@@ -12,41 +12,74 @@ struct ActiveWorkoutView: View {
     var onFinish: () -> Void
 
     @State private var flashOpacity: Double = 0
+    @State private var isShowingQuitConfirmation = false
 
     var body: some View {
-        ZStack {
-            VStack(spacing: 24) {
-                if manager.phase == .finished {
-                    completedView
-                } else if let exercise = manager.currentExercise {
-                    Text(exercise.name)
-                        .font(.largeTitle.bold())
+        NavigationStack {
+            ZStack {
+                backgroundColor
+                    .ignoresSafeArea()
+                    .animation(.easeInOut(duration: 0.2), value: manager.phase)
 
-                    Text("Set \(manager.currentSet) of \(exercise.totalSets)")
-                        .font(.title3)
-                        .foregroundStyle(.secondary)
+                VStack(spacing: 24) {
+                    if manager.phase == .finished {
+                        completedView
+                    } else if let exercise = manager.currentExercise {
+                        Text(exercise.name)
+                            .font(.largeTitle.bold())
 
-                    if manager.rounds > 1 {
-                        Text("Round \(manager.currentRound) of \(manager.rounds)")
-                            .font(.subheadline)
+                        Text("Set \(manager.currentSet) of \(exercise.totalSets)")
+                            .font(.title3)
                             .foregroundStyle(.secondary)
+
+                        if manager.rounds > 1 {
+                            Text("Round \(manager.currentRound) of \(manager.rounds)")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+
+                        Spacer()
+
+                        timerView
+
+                        Spacer()
+
+                        controls(exercise: exercise)
                     }
+                }
+                .padding()
 
-                    Spacer()
-
-                    timerView
-
-                    Spacer()
-
-                    controls(exercise: exercise)
+                Color.green
+                    .opacity(flashOpacity)
+                    .ignoresSafeArea()
+                    .allowsHitTesting(false)
+            }
+            .toolbar {
+                if manager.phase == .working || manager.phase == .resting {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Menu {
+                            Button("Quit Workout", systemImage: "xmark.circle", role: .destructive) {
+                                isShowingQuitConfirmation = true
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis.circle")
+                        }
+                    }
                 }
             }
-            .padding()
-
-            Color.green
-                .opacity(flashOpacity)
-                .ignoresSafeArea()
-                .allowsHitTesting(false)
+            .confirmationDialog(
+                "Quit Workout?",
+                isPresented: $isShowingQuitConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button("Quit Workout", role: .destructive) {
+                    manager.stop()
+                    onFinish()
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("Your progress for this session will be lost.")
+            }
         }
         .onChange(of: manager.restEndTick) { _, _ in
             withAnimation(.easeOut(duration: 0.15)) { flashOpacity = 0.35 }
@@ -55,16 +88,27 @@ struct ActiveWorkoutView: View {
         .onAppear { manager.start() }
     }
 
+    private var backgroundColor: Color {
+        switch manager.phase {
+        case .resting:
+            return .orange
+        case .working:
+            return .green
+        case .notStarted, .finished:
+            return Color(.systemBackground)
+        }
+    }
+
     private var timerView: some View {
         VStack(spacing: 8) {
-            Text(manager.phase == .resting ? "REST" : "WORK")
-                .font(.headline)
-                .foregroundStyle(manager.phase == .resting ? .orange : .green)
+            Text(manager.phase == .resting ? "REST" : "ACTIVE")
+                .font(.title)
+                .foregroundStyle(.white)
 
             Text(formattedTime(manager.phase == .resting ? manager.restRemaining : manager.elapsed))
-                .font(.system(size: 72, weight: .bold, design: .rounded))
+                .font(.system(size: 80, weight: .medium, design: .monospaced))
                 .monospacedDigit()
-                .foregroundStyle(manager.phase == .resting ? .orange : .primary)
+                .foregroundStyle(manager.phase == .resting ? .white : .primary)
 
             if let nextExercise = manager.nextExercise {
                 Text("Next: \(nextExercise.name)")
